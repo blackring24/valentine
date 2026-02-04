@@ -6,8 +6,6 @@
   <title>Will you be my Valentine?</title>
 
   <style>
-    :root { --bg1:#ffdde1; --bg2:#ee9ca7; }
-
     body{
       margin:0;
       height:100vh;
@@ -15,7 +13,7 @@
       place-items:center;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-      /* ✅ Option B: smooth moving gradient background */
+      /* Option B: smooth moving gradient */
       background: linear-gradient(120deg, #ffdde1, #ee9ca7, #ffdde1);
       background-size: 300% 300%;
       animation: bgmove 10s ease infinite;
@@ -29,6 +27,30 @@
       100% { background-position: 0% 50%; }
     }
 
+    /* BIG floating hearts layer */
+    #hearts{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .heart{
+      position:absolute;
+      bottom:-80px;
+      will-change: transform, opacity;
+      animation-name: rise;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.10));
+      opacity: 0.55;
+    }
+    @keyframes rise{
+      0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.55; }
+      100% { transform: translateY(-125vh) translateX(40px) rotate(18deg); opacity: 0; }
+    }
+
     .card{
       background: rgba(255,255,255,0.85);
       backdrop-filter: blur(6px);
@@ -38,20 +60,16 @@
       text-align:center;
       width:min(520px, 92vw);
       position: relative;
+      z-index: 1; /* above hearts */
     }
 
     h1{ margin:0 0 10px; font-size: clamp(26px, 4vw, 40px); }
     p{ margin:0 0 22px; opacity:0.8; }
 
-    /* ✅ Gives nice space under the question + a clean button zone */
+    /* Button zone with clean initial alignment */
     .btns{
       position: relative;
-      height: 110px;                 /* space for No to sit nicely */
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      gap: 26px;                      /* space between Yes and No */
-      flex-wrap:wrap;
+      height: 140px; /* extra space so No can move around without overlapping text */
     }
 
     button{
@@ -67,14 +85,23 @@
 
     button:active{ transform: scale(0.98); }
 
-    #yes{ background:#ff3b7a; color:white; }
+    /* YES: positioned absolutely so it aligns perfectly with NO */
+    #yes{
+      background:#ff3b7a;
+      color:white;
+      position:absolute;
+      left: 44%;
+      top: 50%;
+      --s: 1;
+      transform: translate(-50%, -50%) scale(var(--s));
+    }
 
-    /* ✅ Start aligned nicely to the right of Yes */
+    /* NO: same baseline alignment as YES */
     #no{
       background:#2b2b2b;
       color:white;
-      position: absolute;
-      left: 62%;
+      position:absolute;
+      left: 56%;
       top: 50%;
       transform: translate(-50%, -50%);
       user-select:none;
@@ -86,6 +113,7 @@
       display:none;
       place-items:center;
       background: rgba(0,0,0,0.35);
+      z-index: 2;
     }
 
     .popup .box{
@@ -100,6 +128,8 @@
 </head>
 
 <body>
+  <div id="hearts"></div>
+
   <div class="card" id="card">
     <h1>Will you be my Valentine? 💘</h1>
     <p>Choose wisely 😌</p>
@@ -119,12 +149,36 @@
   </div>
 
   <script>
+    const heartsLayer = document.getElementById("hearts");
+
+    // ✅ Bigger floating hearts (random sizes/positions)
+    const heartEmojis = ["💖","💗","💕","💞","💓"];
+    const HEART_COUNT = 14;
+
+    for (let i = 0; i < HEART_COUNT; i++) {
+      const h = document.createElement("div");
+      h.className = "heart";
+      h.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+
+      const size = Math.floor(Math.random() * 26) + 34; // 34px–59px (BIG)
+      const left = Math.random() * 100;                 // vw
+      const duration = (Math.random() * 5) + 7;         // 7s–12s
+      const delay = Math.random() * 6;                  // 0–6s
+
+      h.style.left = left + "vw";
+      h.style.fontSize = size + "px";
+      h.style.animationDuration = duration + "s";
+      h.style.animationDelay = (-delay) + "s"; // negative = starts mid-animation so it looks continuous
+
+      heartsLayer.appendChild(h);
+    }
+
     const noBtn  = document.getElementById("no");
     const yesBtn = document.getElementById("yes");
     const popup  = document.getElementById("popup");
     const btnZone = document.getElementById("btnZone");
 
-    // ✅ Yes grows more + for longer (bigger cap)
+    // ✅ Yes grows longer (bigger cap)
     let yesScale = 1;
 
     function moveNoButton() {
@@ -132,7 +186,6 @@
       const zoneRect = btnZone.getBoundingClientRect();
       const btnRect  = noBtn.getBoundingClientRect();
 
-      // keep No inside the button zone
       const minX = pad;
       const maxX = zoneRect.width - btnRect.width - pad;
       const minY = pad;
@@ -141,13 +194,14 @@
       const x = Math.random() * (maxX - minX) + minX;
       const y = Math.random() * (maxY - minY) + minY;
 
+      // place relative to btnZone (absolute positioned inside it)
       noBtn.style.left = `${x}px`;
       noBtn.style.top  = `${y}px`;
       noBtn.style.transform = `translate(0,0)`;
 
-      // ✅ Grow Yes a bit more and cap later
-      yesScale = Math.min(yesScale + 0.07, 2.05);
-      yesBtn.style.transform = `scale(${yesScale})`;
+      // Grow YES more + longer
+      yesScale = Math.min(yesScale + 0.07, 2.25);
+      yesBtn.style.setProperty('--s', yesScale);
     }
 
     // Run away when cursor gets close
@@ -156,7 +210,7 @@
       const bx = r.left + r.width / 2;
       const by = r.top  + r.height / 2;
       const dist = Math.hypot(e.clientX - bx, e.clientY - by);
-      if (dist < 120) moveNoButton();
+      if (dist < 125) moveNoButton();
     });
 
     // Also run away on hover/tap attempt
@@ -166,7 +220,7 @@
       moveNoButton();
     }, { passive:false });
 
-    // Yes click popup (keep your exact vibe)
+    // Yes click popup (same vibe)
     yesBtn.addEventListener("click", () => {
       popup.style.display = "grid";
       noBtn.style.display = "none";
