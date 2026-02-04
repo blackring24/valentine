@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Will you be my Valentine?</title>
+  <style>
+    :root { --bg1:#ffdde1; --bg2:#ee9ca7; }
+    body{
+      margin:0; height:100vh; display:grid; place-items:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+    .card{
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(6px);
+      border-radius: 24px;
+      padding: 36px 28px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+      text-align:center;
+      width:min(520px, 92vw);
+      position: relative;
+    }
+    h1{ margin:0 0 10px; font-size: clamp(26px, 4vw, 40px); }
+    p{ margin:0 0 22px; opacity:0.8; }
+    .btns{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+    button{
+      border:0; padding:14px 22px; border-radius: 999px;
+      font-size: 18px; cursor:pointer; font-weight:700;
+      transition: transform .08s ease;
+    }
+    button:active{ transform: scale(0.98); }
+    #yes{ background:#ff3b7a; color:white; }
+    #no{
+      background:#2b2b2b; color:white;
+      position: absolute;
+      left: 50%; top: 65%;
+      transform: translate(-50%, -50%);
+      user-select:none;
+    }
+    .hearts{
+      position: fixed; inset: 0; pointer-events:none; opacity:0.35;
+      background-image:
+        radial-gradient(circle at 10% 20%, #fff 0 2px, transparent 3px),
+        radial-gradient(circle at 70% 10%, #fff 0 2px, transparent 3px),
+        radial-gradient(circle at 30% 80%, #fff 0 2px, transparent 3px),
+        radial-gradient(circle at 90% 70%, #fff 0 2px, transparent 3px);
+      background-size: 220px 220px;
+      animation: float 6s linear infinite;
+    }
+    @keyframes float { to { transform: translateY(-30px); } }
+    .popup{
+      position: fixed; inset:0; display:none; place-items:center;
+      background: rgba(0,0,0,0.35);
+    }
+    .popup .box{
+      background:#fff; border-radius:20px; padding:26px 22px;
+      width:min(520px,92vw); text-align:center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="hearts"></div>
+
+  <div class="card" id="card">
+    <h1>Will you be my Valentine? 💘</h1>
+    <p>Choose wisely 😌</p>
+
+    <div class="btns">
+      <button id="yes">Yes 💖</button>
+      <button id="no">No 😭</button>
+    </div>
+  </div>
+
+  <div class="popup" id="popup">
+    <div class="box">
+      <h1>YAYYYYY 💞</h1>
+      <p>Okay Valentine secured ✅</p>
+      <p style="margin-top:14px; font-weight:700;">Now send me a screenshot 😤</p>
+    </div>
+  </div>
+
+  <script>
+    const noBtn = document.getElementById("no");
+    const yesBtn = document.getElementById("yes");
+    const card = document.getElementById("card");
+    const popup = document.getElementById("popup");
+
+    function moveNoButton() {
+      const pad = 14;
+      const cardRect = card.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      const minX = pad;
+      const maxX = cardRect.width - btnRect.width - pad;
+      const minY = 90;
+      const maxY = cardRect.height - btnRect.height - pad;
+
+      const x = Math.random() * (maxX - minX) + minX;
+      const y = Math.random() * (maxY - minY) + minY;
+
+      noBtn.style.left = `${x}px`;
+      noBtn.style.top  = `${y}px`;
+      noBtn.style.transform = `translate(0,0)`;
+    }
+
+    document.addEventListener("mousemove", (e) => {
+      const r = noBtn.getBoundingClientRect();
+      const bx = r.left + r.width/2;
+      const by = r.top + r.height/2;
+      const dist = Math.hypot(e.clientX - bx, e.clientY - by);
+      if (dist < 110) moveNoButton();
+    });
+
+    noBtn.addEventListener("mouseenter", moveNoButton);
+    noBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      moveNoButton();
+    }, { passive:false });
+
+    yesBtn.addEventListener("click", () => {
+      popup.style.display = "grid";
+      noBtn.style.display = "none";
+    });
+
+    popup.addEventListener("click", (e) => {
+      if (e.target === popup) popup.style.display = "none";
+    });
+
+    window.addEventListener("load", () => {
+      const cardRect = card.getBoundingClientRect();
+      noBtn.style.left = `${cardRect.width * 0.58}px`;
+      noBtn.style.top  = `${cardRect.height * 0.68}px`;
+      noBtn.style.transform = `translate(0,0)`;
+    });
+  </script>
+</body>
+</html>
